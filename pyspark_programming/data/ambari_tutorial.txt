@@ -1,0 +1,192 @@
+#############HBASE tutorial from AMBARI####################
+### VERSION: ambari: 2.6.2.2-1
+### VERSION: HDP   : 2.6.5.0
+
+##### Setup communicate environment between master and slave machine #####
+# setup hostname for each host
+hostnamectl set-hostname hadoop.master.com 
+hostname -f 							// Check hostname is changed of not.
+
+# Disable firewall 
+sudo systemctl disable firewalld
+sudo systemctl stop firewalld
+
+# Setup hhttpd and ntp for each host 
+sudo yum install httpd  				// set http path in web browser. (default folder: /var/www/html)
+sudo yum install ntpd   				// Synchronize time 
+
+## config and start ntpd and httpd 
+# ntpd 
+sudo nano /etc/ntp.conf
+server hadoop.master.com iburst 		// add all host to config file 
+logfile /var/log/ntp.log
+sudo systemctl start ntpd 
+sudo systemctl enable ntpd 
+sudo systemctl status ntpd 
+# httpd 
+sudo systemctl start httpd 
+sudo systemctl enable httpd 
+sudo systemctl status httpd
+
+## setup ssh for master node and send key for each slave node
+ssh-keygen 								// setup on master node 
+cat id_rsa.pub >> authorized_keys
+sudo chmod 700 ~/.ssh
+sudo chmod 600 ~/.ssh/authorized_keys	// Important step - avoid error: permission denied
+ssh-copy-id root@172.16.28.242  		// send for all slave node 
+# set timeout for client 
+sudo nano /etc/ssh/sshd_config
+ClientAliveInterval 120					// After 120s send null packet to host 
+ClientAliveCountMax 5040				// Client exit after 5040*120 = 7 days 
+PermitRootLogin yes						// Or comment this line 
+sudo passwd								// Set password for root user 
+service sshd restart
+
+
+### Setup ambari and hdp 
+# Download full folder of ambari and hdp // ambari/centos7/2.6.2.2-1/
+sudo cp ./ambari /var/www/html/
+sudo cp ./hdp /var/www/html
+sudo cp /var/www/html/ambari/centos7/2.6.2.2-1/ambari.repo /etc/yum.repos.d/	// Important - must not skip 
+sudo cp /var/www/html/hdp/HDP/centos7/2.6.5.0-292/hdp.repo /etc/yum.repos.d/
+sudo nano /etc/yum.repos.d/ambari.repo
+baseurl=http://hadoop.master.com/ambari/centos7/2.6.2.2-1
+gpgcheck=0
+
+sudo nano /etc/yum.repo.d/hpd.repo
+baseurl=http://hadoop.master.com/hdp/HDP/centos7/2.6.5.0-292
+gpgcheck=0
+gpgkey=http://hadoop.master.com/hdp/HDP/centos7/2.6.5.0-292/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+baseurl=http://hadoop.master.com/hdp/HDP-UTILS/centos7/1.1.0.22
+gpgcheck=0
+gpgkey=http://hadoop.master.com/hdp/HDP-UTILS/centos7/1.1.0.22/RPM-GPG-KEY/RPM-GPG-KEY-Jenkins
+
+# setup ambari server and agent 
+sudo su - 
+cd /var/www/html/ambari/centos7/2.6.2.2-1/ambari/
+sudo rpm -Uvh ambari-server*.rpm 		// set on any client or master 
+sudo rpm -Uvh ambari-agent*.rpm 		// setup on all host
+sudo nano /etc/ambari-agent/conf/ambari-agent.ini
+[server]
+hostname=hadoop.master.com
+[security]
+force_https_protocol=PROTOCOL_TLSv1_2
+ambari-server setup 					// set custom jdk for option 3: /usr/java/jdk1.8.0_172-amd64 - NOTE: ALL HOSTS MUST INSTALL SAME VERSION OF JAVA
+ambari-server start 
+ambari-agent start 
+
+# setup on web browser 
+hadoop.master.com:8080					// access via firefox with user and password: admin 
+# Create a cluster
+Step 1: Get started: Fill in name of cluster 
+
+Step 2: Select Stack: choose version of HDP, choose reshat 7 and fill in two sentence: 
+http://hadoop.master.com/hdp/HDP/centos7/2.6.5.0-292
+http://hadoop.master.com/hdp/HDP-UTILS/centos7/1.1.0.22
+
+Step3: Install option: 
+- Target host: hadoop.master.com 		// Fill in all host, each row for each host 
+- ssh private key: 						// fill in file: ~/.ssh/id_rsa
+
+Step4: Confirm host						// may be error: time synchronize, lack of library, binding exception 
+
+Step5: Choose service: HDFS, Yarn, Zookeeper, Hbase, Ambari metric
+
+Step6: Assign masters 
+
+Step7: Assign slaves and clients 		// Install ambari metric on all host to monitor slaves
+
+Step8: Customize services 
+- Fill in password for ambari metrics and smartsense
+- Change web ui port of smartsense from 9000 - 9101
+- change /hbase/configs/advanced/advanced hbase-site/zookeeper.znode.parent: /hbase-current -> hbase
+
+Step9: Review 
+
+Step 10: Install, start and test
+
+step 11: Done!
+
+test bandwidth between 2 host: yum install iperf3
+server A: iperf -s 	// Listening on server 
+server B: iperf3 -c (ip server A here )
+
+#Error 
+hbase(main):001:0> list
+TABLE                                                                                                                                                                                                                                        
+
+ERROR: org.apache.hadoop.hbase.ipc.ServerNotRunningYetException: Server is not running yet
+
+=> Solve: 
+$su - hdfs
+$hdfs dfsadmin -safemode leave
+
+Error version of python 
+delete path of anaconda in bashrc 
+
+
+ID_User ID_Day Hour dow Week revvoice revsms revdata balance updata downdata dataroaming dataservicetype priceplanid loan loantype rechargeamount rechargetrademethod offername cycleenddate smstype voicebalance durationofvoice typevoice
+15111010431021101041
+
+ERROR org.apache.hadoop.yarn.server.applicationhistoryservice.metrics.timeline.PhoenixHBaseAccessor:
+ HBaseAccessor getConnection failed after 10 attempts
+ 
+ solved: sudo rm -r /var/lib/ambari-metrics-collector/hbase-tmp/zookeeper phoenix-spool 
+ 
+ su - hdfs 
+ hdfs dfs -put /opt/sparkOozie /user/oozie 
+ hdfs dfs -rm -r /user/some-file
+
+
+SHOW PARTITIONS page_view;
+ALTER TABLE pv_users DROP PARTITION (ds='2008-08-08')
+DESCRIBE page_view;
+
+ERROR bash-4.2 in centos: => echo "export PS1='[\u@\h \W]\$ '" > /etc/profile.d/bash_prompt.sh
+### Oozie 
+
+error: Ext JS library not installed correctly in Oozie
+solve: 
+Stop Oozie service from Ambari
+wget http://archive.cloudera.com/gplextras/misc/ext-2.2.zip
+sudo cp ext-2.2.zip /usr/hdp/current/oozie-client/libext/
+sudo chown oozie:hadoop /usr/hdp/current/oozie-client/libext/ext-2.2.zip
+sudo -u oozie /usr/hdp/current/oozie-server/bin/oozie-setup.sh prepare-war
+sudo cp ext-2.2 /var/lib/oozie/ (after archived ext-2.2.zip)
+Start Oozie again
+
+
+oozie job -oozie http://hadoop.slave1.com:11000/oozie -config ./job.properties -run
+oozie job -oozie http://hadoop.slave1.com:11000/oozie -info 0000000-18112*
+oozie job -oozie http://hadoop.slave1.com:11000/oozie -kill [app-name]
+oozie jobs -jobtype coordinator (wf)
+
+
+run spring boot rest api: 
+
+java -jar abc.jar --server.address=localhost --server.port=8083
+
+// Check port listening 
+sudo lsof -i -P -n | grep LISTEN 
+
+
+// Delete topic kafka 
+/usr/hdp/current/kafka-broker/kafka-topics.sh --zookeeper localhost:2181 --delete --topic topic_name
+sudo rm -rf /kafka-logs
+hbase zkcli
+rmr /brokers/topics/{topic_name}
+rmr /admin/delete_topics/{topic_name}
+./kafka-topics.sh --create --zookeeper hadoop.master.com:2181,hadoop.slave1.com:2181,hadoop.slave3.com:2181 --replication-factor 2 --partitions 3 --topic hello
+./bin/kafka-topics.sh --list --zookeeper localhost:2181
+./bin/kafka-topics.sh --zookeeper localhost:2181 --delete --topic demo 
+./bin/kafka-topics.sh --describe --topic demo --zookeeper localhost:2181 
+./bin/kafka-console-producer.sh --broker-list localhost:9092 --topic topic-name
+./bin/kafka-console-consumer.sh --zookeeper localhost:2181 --topic Hello-Kafka --from-beginning
+ERROR: Kafka error: Number of active brokers "2" does not meet the required replication factor "3" fot the offsets topic (configured via "offsets.topic.replication.factor") ... 
+Solve: cluster only have 2 broker but the default value of offsets.topic.replication.factor=3 => change this value from ambari: kafka => config => advanced kafka-broker => change offsets.topic.replication.factor from 3 to 1 or 2 
+
+Digital data always changes over time, especially for the data in computer network attack. In recently, because of the increment of existing attacks as well as the threat of new and more destructive future attacks, 
+network security has become a central topic in the field of computer networking. DDoS attacks leveraging botnets with thousands hosts on internet are a common occurrence today. The main problem for researchers to develope 
+algorithms that can learn from the changing of network states, detect and mitigate DDoS attack as soon as possible. From these requirements, we chose machine learning algorithms because of its self-stydying and predict results with high accuracy. 
+In a real TCP-SYN attacks, the traffic flowing into the network increases extremely in a short time, therefor, the algorithms for this challenge must simple enough to mitigate the attacks to the lowest level. for this reason, we use KNN 
+to traceback the ip attacks and block all traffic from these attack ip. 
