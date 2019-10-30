@@ -1,3 +1,6 @@
+# Problem: n items with weights = [], val = []. W = Capacity
+# Find the maximum value of k items in n items with sum weights of k items < W
+
 # Using recursive approach
 def knapsack_recursive(val, wt, n, W):
     # Base case

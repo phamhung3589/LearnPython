@@ -1,3 +1,49 @@
+# using recursive approach
+# assume s = "hunghuy", if s[0] == s[n] (h and y) lps = 2 + s[1:n-1]
+#                       if s[0] != s[n], lps = max(lps(s[1:n]), lps(s[0:n-1]))
+def lps_recursive(s, l, r):
+    if l > r:
+        return 0
+
+    # if l == r => len(s) = 1 => lps = 1
+    if l == r:
+        return 1
+
+    if s[l] == s[r]:
+        return 2 + lps_recursive(s, l+1, r-1)
+
+    else:
+        return max(lps_recursive(s, l+1, r), lps_recursive(s, l, r-1))
+
+
+# using dynamic programming approach
+def lps_dp(s):
+    # len of s
+    n = len(s)
+    # Create a table to store results of subproblems
+    dp = [[0 for _ in range(n)] for _ in range(n)]
+
+    # with string have length = 1 then lps = 1
+    for i in range(n):
+        dp[i][i] = 1
+
+    # iterate throw s from j to i: with i running from 1-n, j running from i-1_0
+    for i in range(1, n):
+        for j in range(i-1, -1, -1):
+
+            # if length of s = 2 and have same character => lps = 2
+            if s[j] == s[i] and i-j==1:
+                dp[j][i] = 2
+
+            # if the first and last character are the same then lps = 2 + s[1:n]
+            elif s[j] == s[i]:
+                dp[j][i] = 2 + dp[j+1][i-1]
+
+            else:
+                dp[j][i] = max(dp[j+1][i], dp[j][i-1])
+
+    return dp[0][n-1]
+
 
 def lps(s):
     n = len(s)
@@ -77,7 +123,9 @@ def print_longest_palindrome_subsequence(X, Y):
 
 if __name__ == "__main__":
     s = "GEEKSFORGEEKS"
+    max_palindrome_recursive = lps_recursive(s, 0, len(s)-1)
     # max_palindrome = lps(s)
     max_palindrome = lps_On_space(s)
+    print("The length of the longest palindrome subsequence using recursive approach is : ", max_palindrome_recursive)
     print("The length of the longest palindrome subsequence: ", max_palindrome)
     print("the longest palindorme is: ", print_longest_palindrome_subsequence(s, s[::-1]))

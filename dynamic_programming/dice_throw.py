@@ -1,3 +1,6 @@
+# n dices with m faces and X: sum of all faces of all n dices
+# Find the number of Way to get X from throwing n dices
+
 # Naive solution - using recursive to solve this problem
 def dice_sum_recursive(m, n, x):
     # Base case - return 0 if number of dice = 0 and sum is still != 0

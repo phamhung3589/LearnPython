@@ -1,3 +1,7 @@
+# price =  [1, 5, 8, 9, 10, 17, 17, 20]
+# length = [1, 2, 3, 4, 5, 6, 7, 8]
+# find maximum value obtain by cutting up the rod and selling the pieces
+
 # A naive recursive solution for rod cutting problem
 def cutting_recursive(price, rod_size):
     max_size = 0

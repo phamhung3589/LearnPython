@@ -74,7 +74,7 @@ def binSearch(A, l, r, key):
             r = m
         else:
             l = m
-    print(A, key, r)
+
     return r
 
 if __name__ == "__main__":
