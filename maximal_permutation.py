@@ -1,3 +1,10 @@
+# Problem: arr container with index from 0 to n-1
+#          arr first_index, second_index, slides with length = k, k < n
+#          for each element in slides compute 2 values
+#               first = first_index[i] - slides[i]
+#               second = second_index[i] - slides[i]
+#          if first or second > n iterate from first of container
+# Question: Find the maximum of container when swap pair of values (first, index) in container arr
 
 def max_permute(container, firstIndex, secondIndex, slides):
     set_index = set()
