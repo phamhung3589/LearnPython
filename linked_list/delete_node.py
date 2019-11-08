@@ -37,6 +37,26 @@ class LinkedList(object):
             new_node.next = curr.next
             curr.next = new_node
 
+    def delete_node(self, dat):
+        curr = self.head
+
+        # if the element to be deleted is at the top
+        if curr.data == dat:
+            if curr.next is not None:
+                curr = curr.next
+                self.head = curr
+            else:
+                self.head = None
+
+            return
+
+        # if not at top then we will search it one by one.
+        else:
+            while curr.next.data != dat:
+                curr = curr.next
+
+            curr.next = curr.next.next
+
 
 if __name__ == "__main__":
     ll = LinkedList()
@@ -47,3 +67,13 @@ if __name__ == "__main__":
     ll.insert_sorted_linkedlist(7)
     ll.insert_sorted_linkedlist(1)
     ll.print_node()
+    print("delete node 1")
+    ll.delete_node(1)
+    ll.print_node()
+    print("delete node 4")
+    ll.delete_node(4)
+    ll.print_node()
+    print("delete node 7")
+    ll.delete_node(7)
+    ll.print_node()
+
