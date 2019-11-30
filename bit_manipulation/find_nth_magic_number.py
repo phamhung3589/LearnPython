@@ -1,4 +1,4 @@
-# Python program to find nth magic numeber: a number which can be expressed as a power of 5 or sum of unique powers of 5
+# Python program to find nth magic number: a number which can be expressed as a power of 5 or sum of unique powers of 5
 # Ex: 5, 25, 30(5 + 25), 125, 130(125 + 5), ….
 # magic numbers can be represented as 001, 010, 011, 100, 101, 110
 

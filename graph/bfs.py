@@ -46,4 +46,3 @@ if __name__ == "__main__":
     graph.add_edge(3, 3)
     print("the following is Breadth First Search: ")
     graph.bfs_run()
-
